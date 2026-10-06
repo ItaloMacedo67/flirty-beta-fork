@@ -23,6 +23,13 @@ class ResourcePackStructureTests(unittest.TestCase):
     def test_required_pack_files_exist(self):
         self.assertTrue(PACK_META.is_file())
         self.assertTrue((ROOT / "pack.png").is_file())
+        self.assertTrue((ROOT / "LICENSE").is_file())
+
+    def test_build_ships_license(self):
+        build_script = read_text(ROOT / "build.sh")
+
+        self.assertIn('cp "${repo_dir}/LICENSE" "${staging_dir}/LICENSE"', build_script)
+        self.assertEqual(build_script.count("pack.mcmeta pack.png LICENSE assets"), 2)
         self.assertTrue(LIGHTMAP_SHADER.is_file())
         self.assertTrue(LEGACY_LIGHTMAP_SHADER.is_file())
         self.assertTrue(GENERAL_SHADER.is_file())

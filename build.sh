@@ -44,6 +44,7 @@ for entry in "${versions[@]}"; do
         cp -R "${repo_dir}/variants/${shader_variant}/assets/." "${staging_dir}/assets/"
     fi
     cp "${repo_dir}/pack.png" "${staging_dir}/pack.png"
+    cp "${repo_dir}/LICENSE" "${staging_dir}/LICENSE"
 
     if [[ "${metadata_style}" == "range" ]]; then
         cat > "${staging_dir}/pack.mcmeta" <<EOF
@@ -69,9 +70,9 @@ EOF
     (
         cd "${staging_dir}"
         if command -v zip > /dev/null; then
-            COPYFILE_DISABLE=1 zip -r -X "${output}" pack.mcmeta pack.png assets > /dev/null
+            COPYFILE_DISABLE=1 zip -r -X "${output}" pack.mcmeta pack.png LICENSE assets > /dev/null
         else
-            python3 -m zipfile -c "${output}" pack.mcmeta pack.png assets
+            python3 -m zipfile -c "${output}" pack.mcmeta pack.png LICENSE assets
         fi
     )
 
