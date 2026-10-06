@@ -17,7 +17,7 @@ This is my fork of [Blobosle/flirty-beta](https://github.com/Blobosle/flirty-bet
 
 What's different:
 
-- It works on 26.3. Mojang changed how shaders load in this version and the old lightmap wouldn't even compile, so I had to port it.
+- It works on 26.3. Mojang changed how shaders load in this version and the old lightmap wouldn't even compile, so I wanted to port it.
 - Sky light now drops in steps at sunset and sunrise like it did in beta, instead of fading smoothly. Shadows at night get properly dark too. If you prefer the old smooth fade, change `STEPPED_SKY_LIGHT` to `0` in `lightmap.fsh`.
 - 1.21 up to 26.1.2 still use the original shader, nothing changed there.
 
