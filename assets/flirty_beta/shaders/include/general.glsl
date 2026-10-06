@@ -1,3 +1,6 @@
+#ifndef FLIRTY_BETA_GENERAL_GLSL
+#define FLIRTY_BETA_GENERAL_GLSL
+
 const float FLIRTY_BETA_OVERWORLD_FOG_START_SCALE = 0.25;
 const float FLIRTY_BETA_SKY_FOG_END_SCALE = 0.8;
 const float FLIRTY_BETA_SHORT_SKY_FOG_END = 64.0;
@@ -121,3 +124,5 @@ vec4 flirty_beta_apply_sky_fog(vec4 color, float vertex_distance, float render_d
     float factor = flirty_beta_linear_sky_fog_factor(vertex_distance, fog_end);
     return vec4(mix(color.rgb, fog_color.rgb, factor), color.a);
 }
+
+#endif

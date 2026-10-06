@@ -7,6 +7,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 PACK_META = ROOT / "pack.mcmeta"
 LIGHTMAP_SHADER = ROOT / "assets/minecraft/shaders/core/lightmap.fsh"
+LEGACY_LIGHTMAP_SHADER = ROOT / "variants/legacy/assets/minecraft/shaders/core/lightmap.fsh"
 GENERAL_SHADER = ROOT / "assets/flirty_beta/shaders/include/general.glsl"
 
 
@@ -23,24 +24,68 @@ class ResourcePackStructureTests(unittest.TestCase):
         self.assertTrue(PACK_META.is_file())
         self.assertTrue((ROOT / "pack.png").is_file())
         self.assertTrue(LIGHTMAP_SHADER.is_file())
+        self.assertTrue(LEGACY_LIGHTMAP_SHADER.is_file())
         self.assertTrue(GENERAL_SHADER.is_file())
 
     def test_pack_metadata_matches_current_pack(self):
         metadata = json.loads(read_text(PACK_META))
 
         self.assertEqual(metadata["pack"]["description"], "Flirty Beta")
-        self.assertEqual(metadata["pack"]["min_format"], 75)
-        self.assertEqual(metadata["pack"]["max_format"], 75)
+        self.assertEqual(metadata["pack"]["min_format"], 97)
+        self.assertEqual(metadata["pack"]["max_format"], 97)
 
-    def test_lightmap_imports_flirty_beta_include(self):
+    def test_lightmap_includes_flirty_beta_include(self):
         shader = read_text(LIGHTMAP_SHADER)
 
+        self.assertIn("#include <flirty_beta:general.glsl>", shader)
+        self.assertNotIn("#moj_import", shader)
+
+    def test_legacy_lightmap_imports_flirty_beta_include(self):
+        shader = read_text(LEGACY_LIGHTMAP_SHADER)
+
         self.assertIn("#moj_import <flirty_beta:general.glsl>", shader)
+
+    def test_lightmap_uses_explicit_interface_locations(self):
+        shader = compact(read_text(LIGHTMAP_SHADER))
+
+        self.assertIn("#extension GL_ARB_separate_shader_objects : require", shader)
+        self.assertIn("layout(location = 0) in vec2 texCoord;", shader)
+        self.assertIn("layout(location = 0) out vec4 fragColor;", shader)
+
+    def test_lightmap_info_block_matches_vanilla_26_3(self):
+        shader = compact(read_text(LIGHTMAP_SHADER))
+
+        self.assertIn(
+            compact(
+                """
+                layout(std140) uniform LightmapInfo {
+                    float SkyFactor;
+                    float BlockFactor;
+                    float NightVisionFactor;
+                    float DarknessScale;
+                    float BossOverlayWorldDarkeningFactor;
+                    float BrightnessFactor;
+                    vec3 BlockLightTint;
+                    vec3 SkyLightColor;
+                    vec3 AmbientColor;
+                    vec3 NightVisionColor;
+                } lightmapInfo;
+                """
+            ),
+            shader,
+        )
+
+    def test_general_include_has_guard(self):
+        shader = read_text(GENERAL_SHADER)
+
+        self.assertTrue(shader.startswith("#ifndef FLIRTY_BETA_GENERAL_GLSL\n#define FLIRTY_BETA_GENERAL_GLSL\n"))
+        self.assertTrue(shader.rstrip().endswith("#endif"))
 
 
 class ShaderBehaviorTests(unittest.TestCase):
     def setUp(self):
         self.lightmap = compact(read_text(LIGHTMAP_SHADER))
+        self.legacy_lightmap = compact(read_text(LEGACY_LIGHTMAP_SHADER))
         self.general = compact(read_text(GENERAL_SHADER))
 
     def test_helper_function_names_are_flirty_beta_prefixed(self):
@@ -137,6 +182,26 @@ class ShaderBehaviorTests(unittest.TestCase):
             "float light_level = max(block_level, sky_level); light_level = clamp(light_level, 0.0, 1.0);",
             "light_level = floor(light_level * 15 + 0.5) / 15;",
             "float ambient = 0.05;",
+            "float ambient = (lightmapInfo.AmbientColor.r + lightmapInfo.AmbientColor.g + lightmapInfo.AmbientColor.b) / 3;",
+            "vec3 color = vec3(flirty_beta_light(light_level, max(ambient, 0.05)));",
+            "color = mix(color, color * max(light_level, 0.4), lightmapInfo.BossOverlayWorldDarkeningFactor);",
+            "color = color - vec3(lightmapInfo.DarknessScale);",
+            "vec3 gamma_color = notGamma(color); color = mix(color, gamma_color, lightmapInfo.BrightnessFactor);",
+            "color = color + vec3(1.0) * lightmapInfo.NightVisionFactor;",
+            "fragColor = vec4(color, 1.0);",
+        ]
+
+        for snippet in expected_snippets:
+            with self.subTest(snippet=snippet):
+                self.assertIn(compact(snippet), self.lightmap)
+
+    def test_legacy_lightmap_pipeline_is_unchanged(self):
+        expected_snippets = [
+            "float block_level = floor(texCoord.x * 16) / 15;",
+            "float sky_level = floor(texCoord.y * 16) * lightmapInfo.SkyFactor / 15;",
+            "float light_level = max(block_level, sky_level); light_level = clamp(light_level, 0.0, 1.0);",
+            "light_level = floor(light_level * 15 + 0.5) / 15;",
+            "float ambient = 0.05;",
             "float ambient = ((lightmapInfo.AmbientColor.r + lightmapInfo.AmbientColor.g + lightmapInfo.AmbientColor.b) / 3 + 0.01) * lightmapInfo.AmbientLightFactor;",
             "vec3 color = vec3(flirty_beta_light(light_level, max(ambient, 0.05)));",
             "color = mix(color, color * max(light_level, 0.4), lightmapInfo.DarkenWorldFactor);",
@@ -148,10 +213,10 @@ class ShaderBehaviorTests(unittest.TestCase):
 
         for snippet in expected_snippets:
             with self.subTest(snippet=snippet):
-                self.assertIn(compact(snippet), self.lightmap)
+                self.assertIn(compact(snippet), self.legacy_lightmap)
 
     def test_comment_style_only_uses_block_function_headers(self):
-        for path in (LIGHTMAP_SHADER, GENERAL_SHADER):
+        for path in (LIGHTMAP_SHADER, LEGACY_LIGHTMAP_SHADER, GENERAL_SHADER):
             shader = read_text(path)
 
             with self.subTest(path=path):

@@ -8,21 +8,22 @@ dist_path="${repo_dir}/${dist_dir}"
 build_dir="${dist_path}/.build"
 
 versions=(
-    "1.21:34:legacy"
-    "1.21.1:34:legacy"
-    "1.21.2:42:legacy"
-    "1.21.3:42:legacy"
-    "1.21.4:46:legacy"
-    "1.21.5:55:legacy"
-    "1.21.6:63:legacy"
-    "1.21.7:64:legacy"
-    "1.21.8:64:legacy"
-    "1.21.9:69:range"
-    "1.21.10:69:range"
-    "1.21.11:75:range"
-    "26.1:84:range"
-    "26.1.1:84:range"
-    "26.1.2:84:range"
+    "1.21:34:legacy:legacy"
+    "1.21.1:34:legacy:legacy"
+    "1.21.2:42:legacy:legacy"
+    "1.21.3:42:legacy:legacy"
+    "1.21.4:46:legacy:legacy"
+    "1.21.5:55:legacy:legacy"
+    "1.21.6:63:legacy:legacy"
+    "1.21.7:64:legacy:legacy"
+    "1.21.8:64:legacy:legacy"
+    "1.21.9:69:range:legacy"
+    "1.21.10:69:range:legacy"
+    "1.21.11:75:range:legacy"
+    "26.1:84:range:legacy"
+    "26.1.1:84:range:legacy"
+    "26.1.2:84:range:legacy"
+    "26.3:97:range:"
 )
 
 mkdir -p "${dist_path}"
@@ -30,7 +31,7 @@ rm -rf "${build_dir}"
 mkdir -p "${build_dir}"
 
 for entry in "${versions[@]}"; do
-    IFS=":" read -r version pack_format metadata_style <<< "${entry}"
+    IFS=":" read -r version pack_format metadata_style shader_variant <<< "${entry}"
 
     staging_dir="${build_dir}/${version}"
     output="${dist_path}/${pack_name} ${version}.zip"
@@ -39,6 +40,9 @@ for entry in "${versions[@]}"; do
     mkdir -p "${staging_dir}"
 
     cp -R "${repo_dir}/assets" "${staging_dir}/assets"
+    if [[ -n "${shader_variant}" ]]; then
+        cp -R "${repo_dir}/variants/${shader_variant}/assets/." "${staging_dir}/assets/"
+    fi
     cp "${repo_dir}/pack.png" "${staging_dir}/pack.png"
 
     if [[ "${metadata_style}" == "range" ]]; then
@@ -64,7 +68,11 @@ EOF
 
     (
         cd "${staging_dir}"
-        COPYFILE_DISABLE=1 zip -r -X "${output}" pack.mcmeta pack.png assets > /dev/null
+        if command -v zip > /dev/null; then
+            COPYFILE_DISABLE=1 zip -r -X "${output}" pack.mcmeta pack.png assets > /dev/null
+        else
+            python3 -m zipfile -c "${output}" pack.mcmeta pack.png assets
+        fi
     )
 
     echo "Built ${dist_dir}/${pack_name} ${version}.zip"

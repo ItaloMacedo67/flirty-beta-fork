@@ -1,27 +1,25 @@
 #version 330
-#extension GL_ARB_separate_shader_objects : require
 
 #define QUANTIZE_LIGHT 0
 #define OVERRIDE_AMBIENT 0
 
-#include <flirty_beta:general.glsl>
+#moj_import <flirty_beta:general.glsl>
 
 layout(std140) uniform LightmapInfo {
+    float AmbientLightFactor;
     float SkyFactor;
     float BlockFactor;
     float NightVisionFactor;
     float DarknessScale;
-    float BossOverlayWorldDarkeningFactor;
+    float DarkenWorldFactor;
     float BrightnessFactor;
-    vec3 BlockLightTint;
     vec3 SkyLightColor;
     vec3 AmbientColor;
-    vec3 NightVisionColor;
 } lightmapInfo;
 
-layout(location = 0) in vec2 texCoord;
+in vec2 texCoord;
 
-layout(location = 0) out vec4 fragColor;
+out vec4 fragColor;
 
 /*
  * Returns squared brightness for a light level.
@@ -64,12 +62,12 @@ void main() {
     #if OVERRIDE_AMBIENT == 1
         float ambient = 0.05;
     #else
-        float ambient = (lightmapInfo.AmbientColor.r + lightmapInfo.AmbientColor.g + lightmapInfo.AmbientColor.b) / 3;
+        float ambient = ((lightmapInfo.AmbientColor.r + lightmapInfo.AmbientColor.g + lightmapInfo.AmbientColor.b) / 3 + 0.01) * lightmapInfo.AmbientLightFactor;
     #endif
 
     vec3 color = vec3(flirty_beta_light(light_level, max(ambient, 0.05)));
 
-    color = mix(color, color * max(light_level, 0.4), lightmapInfo.BossOverlayWorldDarkeningFactor);
+    color = mix(color, color * max(light_level, 0.4), lightmapInfo.DarkenWorldFactor);
 
     color = color - vec3(lightmapInfo.DarknessScale);
 
