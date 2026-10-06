@@ -50,7 +50,7 @@ for entry in "${versions[@]}"; do
         cat > "${staging_dir}/pack.mcmeta" <<EOF
 {
     "pack": {
-        "description": "Flirty Beta",
+        "description": "Flirty Beta (${version})",
         "min_format": ${pack_format},
         "max_format": ${pack_format}
     }
@@ -60,7 +60,7 @@ EOF
         cat > "${staging_dir}/pack.mcmeta" <<EOF
 {
     "pack": {
-        "description": "Flirty Beta",
+        "description": "Flirty Beta (${version})",
         "pack_format": ${pack_format}
     }
 }

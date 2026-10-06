@@ -37,7 +37,7 @@ class ResourcePackStructureTests(unittest.TestCase):
     def test_pack_metadata_matches_current_pack(self):
         metadata = json.loads(read_text(PACK_META))
 
-        self.assertEqual(metadata["pack"]["description"], "Flirty Beta")
+        self.assertEqual(metadata["pack"]["description"], "Flirty Beta (26.3)")
         self.assertEqual(metadata["pack"]["min_format"], 97)
         self.assertEqual(metadata["pack"]["max_format"], 97)
 
