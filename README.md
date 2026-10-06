@@ -23,7 +23,7 @@ What's different:
 
 ## Download
 
-Grab the 26.3 zip from the [releases](https://github.com/ItaloMacedo67/flirty-beta-rust/releases). For older versions get it from the [original repo](https://github.com/Blobosle/flirty-beta/releases).
+Grab the 26.3 zip from the [releases](https://github.com/ItaloMacedo67/flirty-beta-fork/releases). For older versions get it from the [original repo](https://github.com/Blobosle/flirty-beta/releases).
 
 ## Building
 
