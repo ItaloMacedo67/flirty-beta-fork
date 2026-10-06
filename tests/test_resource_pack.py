@@ -97,6 +97,7 @@ class ShaderBehaviorTests(unittest.TestCase):
             [
                 "flirty_beta_texture",
                 "flirty_beta_light",
+                "flirty_beta_sky_subtracted",
                 "flirty_beta_linear_range_fog_factor",
                 "flirty_beta_linear_fog_factor",
                 "flirty_beta_nether_fog_factor",
@@ -118,6 +119,18 @@ class ShaderBehaviorTests(unittest.TestCase):
                     float lit_amount = 1.0 - darkness;
                     float falloff = darkness * 3.0 + 1.0;
                     return lit_amount / falloff * (1.0 - ambient) + ambient;
+                }
+                """
+            ),
+            self.general,
+        )
+
+    def test_sky_subtracted_matches_beta_steps(self):
+        self.assertIn(
+            compact(
+                """
+                float flirty_beta_sky_subtracted(float sky_factor) {
+                    return floor((1.0 - clamp(sky_factor, 0.0, 1.0)) * 15.0);
                 }
                 """
             ),
@@ -178,6 +191,9 @@ class ShaderBehaviorTests(unittest.TestCase):
     def test_lightmap_pipeline_is_unchanged(self):
         expected_snippets = [
             "float block_level = floor(texCoord.x * 16) / 15;",
+            "#define STEPPED_SKY_LIGHT 1",
+            "float sky_subtracted = flirty_beta_sky_subtracted(lightmapInfo.SkyFactor);",
+            "float sky_level = max(floor(texCoord.y * 16) - sky_subtracted, 0.0) / 15;",
             "float sky_level = floor(texCoord.y * 16) * lightmapInfo.SkyFactor / 15;",
             "float light_level = max(block_level, sky_level); light_level = clamp(light_level, 0.0, 1.0);",
             "light_level = floor(light_level * 15 + 0.5) / 15;",

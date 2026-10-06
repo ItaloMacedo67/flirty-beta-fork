@@ -28,6 +28,13 @@ float flirty_beta_light(float light_level, float ambient) {
 }
 
 /*
+ * Converts a sky factor into whole sky light levels to subtract, like beta's skylightSubtracted.
+ */
+float flirty_beta_sky_subtracted(float sky_factor) {
+    return floor((1.0 - clamp(sky_factor, 0.0, 1.0)) * 15.0);
+}
+
+/*
  * Calculates linear fog intensity between a start and end distance.
  */
 float flirty_beta_linear_range_fog_factor(float vertex_distance, float fog_start, float fog_end) {

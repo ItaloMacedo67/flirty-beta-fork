@@ -3,6 +3,7 @@
 
 #define QUANTIZE_LIGHT 0
 #define OVERRIDE_AMBIENT 0
+#define STEPPED_SKY_LIGHT 1
 
 #include <flirty_beta:general.glsl>
 
@@ -52,7 +53,13 @@ float parabolicMixFactor(float level) {
  */
 void main() {
     float block_level = floor(texCoord.x * 16) / 15;
-    float sky_level = floor(texCoord.y * 16) * lightmapInfo.SkyFactor / 15;
+
+    #if STEPPED_SKY_LIGHT == 1
+        float sky_subtracted = flirty_beta_sky_subtracted(lightmapInfo.SkyFactor);
+        float sky_level = max(floor(texCoord.y * 16) - sky_subtracted, 0.0) / 15;
+    #else
+        float sky_level = floor(texCoord.y * 16) * lightmapInfo.SkyFactor / 15;
+    #endif
 
     float light_level = max(block_level, sky_level);
     light_level = clamp(light_level, 0.0, 1.0);
