@@ -25,14 +25,7 @@ layout(location = 0) in vec2 texCoord;
 layout(location = 0) out vec4 fragColor;
 
 /*
- * Returns squared brightness for a light level.
- */
-float get_brightness(float level) {
-    return pow(level, 2);
-}
-
-/*
- * Applies the cubic brightness curve used for gamma adjustment.
+ * Brightness slider curve. Vanilla raises it to the 4th power now, this keeps the old cube.
  */
 vec3 notGamma(vec3 color) {
     float max_component = max(max(color.x, color.y), color.z);
@@ -41,16 +34,6 @@ vec3 notGamma(vec3 color) {
     return color * (max_scaled / max_component);
 }
 
-/*
- * Returns a parabolic blend factor for a light level.
- */
-float parabolicMixFactor(float level) {
-    return (2.0 * level - 1.0) * (2.0 * level - 1.0);
-}
-
-/*
- * Builds the final lightmap color from block light, sky light, and visual effects.
- */
 void main() {
     float block_level = floor(texCoord.x * 16) / 15;
 
@@ -89,5 +72,4 @@ void main() {
     }
 
     fragColor = vec4(color, 1.0);
-    return;
 }
