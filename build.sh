@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-pack_name="Flirty Beta"
+pack_name="Flirty Beta Fork"
 repo_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 dist_dir="dist"
 dist_path="${repo_dir}/${dist_dir}"
@@ -50,7 +50,7 @@ for entry in "${versions[@]}"; do
         cat > "${staging_dir}/pack.mcmeta" <<EOF
 {
     "pack": {
-        "description": "Flirty Beta (${version})",
+        "description": "Flirty Beta Fork (${version})",
         "min_format": ${pack_format},
         "max_format": ${pack_format}
     }
@@ -60,7 +60,7 @@ EOF
         cat > "${staging_dir}/pack.mcmeta" <<EOF
 {
     "pack": {
-        "description": "Flirty Beta (${version})",
+        "description": "Flirty Beta Fork (${version})",
         "pack_format": ${pack_format}
     }
 }

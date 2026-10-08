@@ -35,10 +35,17 @@ class ResourcePackTests(unittest.TestCase):
         self.assertIn('cp "${repo_dir}/LICENSE" "${staging_dir}/LICENSE"', build_script)
         self.assertEqual(build_script.count("pack.mcmeta pack.png LICENSE assets"), 2)
 
+    def test_build_names_the_fork(self):
+        build_script = read_text(ROOT / "build.sh")
+
+        # the zip name is the title shown in the resource pack list
+        self.assertIn('pack_name="Flirty Beta Fork"', build_script)
+        self.assertEqual(build_script.count('"description": "Flirty Beta Fork (${version})"'), 2)
+
     def test_pack_metadata_matches_current_pack(self):
         metadata = json.loads(read_text(PACK_META))
 
-        self.assertEqual(metadata["pack"]["description"], "Flirty Beta (26.3)")
+        self.assertEqual(metadata["pack"]["description"], "Flirty Beta Fork (26.3)")
         self.assertEqual(metadata["pack"]["min_format"], 97)
         self.assertEqual(metadata["pack"]["max_format"], 97)
 
